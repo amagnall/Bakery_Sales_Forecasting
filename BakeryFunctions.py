@@ -12,13 +12,22 @@ from datetime import datetime
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from pandas.tseries.offsets import DateOffset
+from sklearn.metrics import mean_absolute_error as mae
 
 
 # Variables 
 
-dark_magpie = '#00313B'
-
+dark_magpie = '#112E3E'
+medium_dark_magpie = '#054554'
+medium_magpie = '#235087'
 light_magpie = '#5489CB'
+lighter_magpie = '#d1f5ff'
+red_magpie = '#FF6459'
+yellow_magpie = '#E9BA49'
+pink_magpie = '#F8EEF9'
+grey_magpie = '#AEAEAE'
+
 
 
 # Raw Data Cleaning and Exploration Functions
@@ -308,12 +317,176 @@ def plot_regplot(df, y, x, title, ylable, xlabel):
     
     
     
-    
-    
 # Model 1 Moving Average
 
 def rev_moving_average(df, window, new_col):
     df[new_col] = df['Total_Revenue'].rolling(window, closed='left').mean().round(2)
+    
+    
+    
+def moving_average_subplot(df, col1, col2, col3, plot_label, df_slice=0, window_length = 0):
+    plt.subplots(3,1, figsize= (15,15))
+    if df_slice == 0:
+        index = 0
+    else: 
+        index = (len(df)-df_slice)
+    
+    plt.subplot(3,1,1)
+    plt.plot(df.index[index:], df['Total_Revenue'][index:], color = light_magpie, label = plot_label,
+               linewidth=1)
+    if window_length > 0:
+        plt.plot(df.index[(len(df)-window_length):], df[col1][(len(df)-window_length):], color = red_magpie,
+                 label = col1, linewidth=2, linestyle = 'dashed')
+    else:
+        plt.plot(df.index, df[col1], color = red_magpie, label = col1, linewidth=2)
+    plt.ylabel('Revenue (£)', fontsize=15)
+    plt.yticks(fontsize=15)
+    plt.xlabel('Date', fontsize=15)
+    plt.xticks(fontsize=15)
+    plt.legend(fontsize=10)
+    plt.title(f'{col1} Revenue', fontsize=20)
+
+    plt.subplot(3,1,2)
+    plt.plot(df.index[index:], df['Total_Revenue'][index:], color = light_magpie, label = plot_label,
+               linewidth=1)
+    if window_length > 0:
+        plt.plot(df.index[(len(df)-window_length):], df[col2][(len(df)-window_length):], color = red_magpie,
+                 label = col2, linewidth=2, linestyle = 'dashed')
+    else:
+        plt.plot(df.index, df[col3], color = red_magpie, label = col3, linewidth=2)
+    plt.ylabel('Revenue (£)', fontsize=15)
+    plt.yticks(fontsize=15)
+    plt.xlabel('Date', fontsize=15)
+    plt.xticks(fontsize=15)
+    plt.legend(fontsize=10)
+    plt.title(f'{col2} Revenue', fontsize=20)
+
+    plt.subplot(3,1,3)
+    plt.plot(df.index[index:], df['Total_Revenue'][index:], color = light_magpie, label = plot_label,
+               linewidth=1)
+    if window_length > 0:
+        plt.plot(df.index[(len(df)-window_length):], df[col3][(len(df)-window_length):], color = red_magpie,
+                 label = col3, linewidth=2, linestyle = 'dashed')
+    else:
+        plt.plot(df.index, df[col3], color = red_magpie, label = col3, linewidth=2)
+    plt.ylabel('Revenue (£)', fontsize=15)
+    plt.yticks(fontsize=15)
+    plt.xlabel('Date', fontsize=15)
+    plt.xticks(fontsize=15)
+    plt.legend(fontsize=10)
+    plt.title(f'{col3} Revenue', fontsize=20)
+
+    plt.tight_layout()
+    plt.show()
+    
+    
+def predict_rev_ma(train_test_df, ma_window, prediction_length, new_col, index_type):
+    
+    train_test_df[new_col]=0
+    predict_date_index = len(train_test_df)-prediction_length
+    predict_dates = train_test_df.index[predict_date_index:]
+    counter_total_av = ma_window
+    counter_pred_ma = 0
+    
+    for i in range(0,prediction_length):
+        ma_revenue = 0
+        current_row = train_test_df.index[predict_date_index+i]
+        for j in range(ma_window,counter_pred_ma,-1):
+            if index_type == 'Day':
+                total_rev_col_dates = current_row - DateOffset(days=j)
+            elif index_type=='Week':
+                total_rev_col_dates = current_row - DateOffset(weeks=j)
+            else:
+                total_rev_col_dates = current_row - DateOffset(months=j)
+            ma_revenue += train_test_df.loc[total_rev_col_dates, 'Total_Revenue']   
+        for k in range(counter_pred_ma+1):
+            if index_type == 'Day':
+                total_rev_col_dates = current_row - DateOffset(days=k)
+            elif index_type=='Week':
+                total_rev_col_dates = current_row - DateOffset(weeks=k)
+            else:
+                total_rev_col_dates = current_row - DateOffset(months=k)
+            ma_revenue += train_test_df.loc[total_rev_col_dates, new_col]
+        train_test_df.loc[current_row, new_col] = round(ma_revenue/ma_window,2)
+        
+        if counter_total_av!=0:
+            counter_total_av -= 1
+        else: 
+            counter_total_av=0
+        if counter_pred_ma != ma_window:
+            counter_pred_ma += 1
+        else:
+            counter_pred_ma = ma_window
+        
+    
+    
+def revenue_difference(df, ma_col, new_col):
+    df[new_col] = df['Total_Revenue'] - df[ma_col]
+    
+def revenue_difference_plots(df, col1, col2, col3, width=0.8):
+    plt.subplots(1,3, figsize=(30,10))
+    plt.subplot(1,3,1)
+    plt.bar(x=df.index,height=df[col1], color=dark_magpie, width=width)
+    plt.title(f'Moving Average {col1}', fontsize=30, pad=10)
+    plt.xticks(fontsize=25,rotation=25)
+    plt.xlabel('Date', fontsize=25)
+    plt.ylabel('Revenue Difference (£)', fontsize=25)
+    plt.yticks(fontsize=25)
+
+    plt.subplot(1,3,2)
+    plt.bar(x=df.index,height=df[col2], color=medium_magpie, width=width)
+    plt.title(f'Moving Average {col2}', fontsize=30, pad=10)
+    plt.xticks(fontsize=25,rotation=25)
+    plt.xlabel('Date', fontsize=25)
+    plt.ylabel('Revenue Difference (£)', fontsize=25)
+    plt.yticks(fontsize=25)
+
+    plt.subplot(1,3,3)
+    plt.bar(x=df.index,height=df[col3], color=light_magpie, width=width)
+    plt.title(f'Moving Average {col3}', fontsize=30, pad=10)
+    plt.xticks(fontsize=25,rotation=25)
+    plt.ylabel('Revenue Difference (£)', fontsize=25)
+    plt.yticks(fontsize=25)
+    plt.xlabel('Date', fontsize=25)
+    
+    plt.tight_layout(w_pad=5)
+    plt.show()
+    
+
+def mean_absolute_error(true_values, predicted_values, ma_label):
+    """
+    Calculate the mean absolute error. 
+    """
+    # calculate MAE
+    error = mae(true_values, predicted_values)
+  
+    print(f'The MAE between the actual and {ma_label} revenue is {str(error)}')    
+    
+    
+    
+def mean_absolute_error(true_values, predicted_values, ma_length, ma_label):
+    """
+    Calculate the mean absolute error. 
+    """
+    error = np.abs(true_values - predicted_values)
+    mae = round((1 / ma_length) * sum(error),1)
+    
+    print(f'The MAE between the actual and {ma_label} revenue is {mae}')
+    
+    
+def mean_absolute_percentage_error(true_values, predicted_values, ma_label):
+    """
+    Calculate the mean absolute percentage error. 
+    The prediction error is determined and divide by the true value, then averaged.
+    """
+    error = true_values - predicted_values
+    absolute_percentage_error = np.abs(error/true_values)
+    mape = round(absolute_percentage_error.mean() * 100,1)
+    
+    print(f'The MAPE between the actual and {ma_label} revenue is {mape}%')
+
+
+
     
 
 
