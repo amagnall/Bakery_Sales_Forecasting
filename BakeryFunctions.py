@@ -14,6 +14,15 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from pandas.tseries.offsets import DateOffset
 from sklearn.metrics import mean_absolute_error as mae
+import math  
+import sklearn.metrics
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+import statsmodels.api as sm
+from mlxtend.frequent_patterns import apriori
+from mlxtend.frequent_patterns import association_rules
+from mlxtend.preprocessing import TransactionEncoder
+
+
 
 
 # Variables 
@@ -298,7 +307,7 @@ def plot_rev_lines(df,col,title,yaxis):
     fig.add_trace(chart_data1)
     fig.add_trace(chart_data2, secondary_y=True)
     # Create the layout object and add it to the figure
-    chart_layout = go.Layout(width=800,height=600, title=title,
+    chart_layout = go.Layout(title=title,
                             xaxis_title='Date', yaxis_title='Revenue £')
     fig.update_yaxes(title_text=yaxis, secondary_y=True)
     fig.update_layout(chart_layout)
@@ -453,28 +462,17 @@ def revenue_difference_plots(df, col1, col2, col3, width=0.8):
     plt.show()
     
 
-def mean_absolute_error(true_values, predicted_values, ma_label):
+def mean_absolute_error(true_values, predicted_values, forecast_name):
     """
     Calculate the mean absolute error. 
     """
     # calculate MAE
-    error = mae(true_values, predicted_values)
+    error = round(mae(true_values, predicted_values),2)
   
-    print(f'The MAE between the actual and {ma_label} revenue is {str(error)}')    
+    print(f'The MAE between the actual and {forecast_name} revenue is {str(error)}')    
     
     
-    
-def mean_absolute_error(true_values, predicted_values, ma_length, ma_label):
-    """
-    Calculate the mean absolute error. 
-    """
-    error = np.abs(true_values - predicted_values)
-    mae = round((1 / ma_length) * sum(error),1)
-    
-    print(f'The MAE between the actual and {ma_label} revenue is {mae}')
-    
-    
-def mean_absolute_percentage_error(true_values, predicted_values, ma_label):
+def mean_absolute_percentage_error(true_values, predicted_values, forecast_name):
     """
     Calculate the mean absolute percentage error. 
     The prediction error is determined and divide by the true value, then averaged.
@@ -483,10 +481,76 @@ def mean_absolute_percentage_error(true_values, predicted_values, ma_label):
     absolute_percentage_error = np.abs(error/true_values)
     mape = round(absolute_percentage_error.mean() * 100,1)
     
-    print(f'The MAPE between the actual and {ma_label} revenue is {mape}%')
+    print(f'The MAPE between the actual and {forecast_name} revenue is {mape}%')
+    
+def rmse(actual, predicted, forecast_name):
+    mse = sklearn.metrics.mean_squared_error(actual, predicted)  
+    rmse = math.sqrt(mse)  
+
+    print(f'The RMSE for the {forecast_name} is: {round(rmse,2)}')  
+    
+
+def full_accuracy_report(true_values, predicted_values, forecast_name):
+    rmse(true_values, predicted_values, forecast_name)
+    print('')
+    mean_absolute_error(true_values, predicted_values, forecast_name)
+    print('')
+    mean_absolute_percentage_error(true_values, predicted_values, forecast_name)
 
 
 
     
 
 
+# linear regression model 
+
+def add_results(results_df, model, r2, RMSE, AIC, MAPE, comments):
+    """
+    Function to add the rows entered into the model results dataframe and returns and displays the inputted results df.
+    
+    Inputs:
+    results_df (dataframe): dataframe the new results will be appended to
+    model (int): the model number that will be entered in the 'Model' column in the results df
+    r2 (float) : the R2 value will be entered in the 'R2' column in the results df
+    RMSE (float) : the RMSE value will be entered in the 'RMSE' column in the results df
+    AIC (float): The AIC value of the model, will be added to 'AIC' column in resutls df 
+    MAPE (string) : The MAPE score of the modek will be added to the 'MAPE (%)' columns in the results df
+    comments (string): The list of columns / features used or changed in the model 
+    
+    Output:
+    A new row in the results df containing the model, test score, hyperparameters, scaler and additional features used
+    """
+    results_dictionary = {'Model':model,
+                    'R2': r2,
+                    'RMSE':RMSE,
+                         'AIC': AIC,
+                         'MAPE (%)': MAPE,
+                         'Comments':comments}
+    results_df = results_df.append(results_dictionary, ignore_index=True)
+    display(results_df)
+    return results_df
+
+
+
+def vif_func(X):
+    """
+    This function calculates the variance inflation factor of a given dataframe.
+
+    Inputs:
+    df (dataframe): dataframe containing the data for analysis
+    
+    """
+    display(pd.Series([variance_inflation_factor(X.values, i) 
+               for i in range(X.shape[1])], 
+              index=X.columns))
+    
+    
+    
+# Market basket analysis
+def transaction_encoder(df):
+    df = df.groupby('TransactionId')['ProductName'].agg(['unique'])
+    df = df['unique'].values.tolist()
+    te = TransactionEncoder()
+    df = te.fit_transform(df)
+    df = pd.DataFrame(df, columns=te.columns_)
+    return df
