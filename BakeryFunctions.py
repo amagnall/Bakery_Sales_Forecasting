@@ -13,16 +13,16 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from pandas.tseries.offsets import DateOffset
-from sklearn.metrics import mean_absolute_error as mae
+from sklearn.metrics import mean_absolute_error as mae, mean_absolute_percentage_error
 import math  
 import sklearn.metrics
+import itertools
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 import statsmodels.api as sm
 from mlxtend.frequent_patterns import apriori
 from mlxtend.frequent_patterns import association_rules
 from mlxtend.preprocessing import TransactionEncoder
-
-
+from statsmodels.tsa.statespace.sarimax import SARIMAX
 
 
 # Variables 
@@ -472,14 +472,13 @@ def mean_absolute_error(true_values, predicted_values, forecast_name):
     print(f'The MAE between the actual and {forecast_name} revenue is {str(error)}')    
     
     
-def mean_absolute_percentage_error(true_values, predicted_values, forecast_name):
+def mean_absolute_percentage_error_calc(true_values, predicted_values, forecast_name):
     """
     Calculate the mean absolute percentage error. 
     The prediction error is determined and divide by the true value, then averaged.
     """
-    error = true_values - predicted_values
-    absolute_percentage_error = np.abs(error/true_values)
-    mape = round(absolute_percentage_error.mean() * 100,1)
+    mape_score = mean_absolute_percentage_error(true_values, predicted_values)
+    mape = round(mape_score*100,1)
     
     print(f'The MAPE between the actual and {forecast_name} revenue is {mape}%')
     
@@ -495,7 +494,7 @@ def full_accuracy_report(true_values, predicted_values, forecast_name):
     print('')
     mean_absolute_error(true_values, predicted_values, forecast_name)
     print('')
-    mean_absolute_percentage_error(true_values, predicted_values, forecast_name)
+    mean_absolute_percentage_error_calc(true_values, predicted_values, forecast_name)
 
 
 
@@ -543,6 +542,83 @@ def vif_func(X):
     display(pd.Series([variance_inflation_factor(X.values, i) 
                for i in range(X.shape[1])], 
               index=X.columns))
+    
+    
+    
+# ARIMA 
+
+# evaluate the SARIMAX model for a given order (p,d,q)
+def evaluate_sarimax_model(X, arima_order, exog_data, param_seasonal, split_size):
+    # prepare training and validation dataset
+    train_size = int(len(X) * split_size)
+    train, test = X[0:train_size], X[train_size:]
+
+    # Test if there is exogenous data or not 
+    if type(exog_data) == type(X):
+        exog_size = int(len(exog_data) * split_size)
+        ex_train, ex_test = exog_data[0:exog_size], exog_data[exog_size:]
+            # fit model
+        model = SARIMAX(train, exog=ex_train, order=arima_order, seasonal_order = param_seasonal, trend='c')
+        model_fit = model.fit(disp=0)
+        #predict
+        predictions = model_fit.predict(start=len(train), end=len(train)+len(test)-1, exog=ex_test)
+        mape = mean_absolute_percentage_error(test, predictions)
+        return mape
+    
+    else:    
+        # To fit model
+        model = SARIMAX(train, order=arima_order, seasonal_order = param_seasonal, trend='c')
+        model_fit = model.fit(disp=0)
+        #predict
+        predictions = model_fit.predict(start=len(train), end=len(train)+len(test)-1)
+        mape = mean_absolute_percentage_error(test, predictions)
+        return mape
+    
+
+
+# To evaluate combinations of p, d and q values for the SARIMAX model
+def evaluate_models(dataset, p_values, d_values, q_values, exog_data, s_range, s_order, split_size):
+    dataset = dataset.astype('float32')
+    best_mape, best_order, best_s_order = float('inf'), None, None
+    for p in p_values:
+        for d in d_values:
+            for q in q_values:
+                order = (p,d,q)
+                seasonal_pdq = [(x[0], x[1], x[2], s_order) for x in list(itertools.product(s_range, s_range, s_range))]
+                for param_seasonal in seasonal_pdq:
+                    try:
+                        mape = evaluate_sarimax_model(dataset, order, exog_data, param_seasonal, split_size)
+                        if mape < best_mape:
+                            best_mape, best_order, best_s_order = mape, order, param_seasonal
+#                         print(f'SARIMAX{order} SEASONAL{param_seasonal} MAPE={round(mape,3)}')
+                    except:
+                        continue    
+                    
+    print(f'The Best SARIMAX {best_order} SEASONAL{best_s_order} MAPE={round(best_mape,3)}')
+    
+    
+    
+def train_forecast_plot(train_df, test_df, predictions, title):
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=train_df.index, y=train_df, mode='lines', name='Train'))
+    fig.add_trace(go.Scatter(x=test_df.index, y=test_df, mode='lines', name='Test', line={'color':red_magpie}))
+    fig.add_trace(go.Scatter(x=predictions.index, y=predictions, mode='lines', name='Predictions'))
+    fig.update_xaxes(rangeslider_visible=True)
+    fig.update_layout(
+        yaxis_title='Revenue (£)', 
+        xaxis_title='Date',
+        title=title
+    )
+    fig.show()    
+    
+
+
+    
+    
+    
+    
+    
+    
     
     
     
