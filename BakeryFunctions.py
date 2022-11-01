@@ -503,6 +503,35 @@ def full_accuracy_report(true_values, predicted_values, forecast_name):
 
 # linear regression model 
 
+def full_lreg(X_train, y_train, X_test, train_df, test_df, title, y_test, forecast_label):
+    print('Fitting linear regression model.\n')
+    y = y_train
+    # First the X and y values need to splitted: 
+    X = X_train
+    # Then the X_ constant needs to be added to give the intercept value
+    X_withconstant = sm.add_constant(X)
+    # The model is then instantiated using the sm.OLS method
+    lm_revenue = sm.OLS(y,X_withconstant)
+    # The model is fitted using the .fit() method
+    lm_revenue_results = lm_revenue.fit()
+    # The results are displayed using the .summary() method
+    display(lm_revenue_results.summary())
+
+    print('Making prediction with fitted model.\n')
+    # Setting up X test with constant 
+    X_test_withconstant = sm.add_constant(X_test)
+    
+    # Predictions
+    prediction = lm_revenue_results.predict(X_test_withconstant)
+    
+    print('Plotting predicted results.\n')
+    train_forecast_plot(train_df, test_df, prediction, title)
+    
+    print('The accuracy scores for the model are:\n')
+    
+    full_accuracy_report(y_test, prediction, forecast_label)
+
+
 def add_results(results_df, model, r2, RMSE, AIC, MAPE, comments):
     """
     Function to add the rows entered into the model results dataframe and returns and displays the inputted results df.
@@ -600,8 +629,8 @@ def evaluate_models(dataset, p_values, d_values, q_values, exog_data, s_range, s
     
 def train_forecast_plot(train_df, test_df, predictions, title):
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=train_df.index, y=train_df, mode='lines', name='Train'))
-    fig.add_trace(go.Scatter(x=test_df.index, y=test_df, mode='lines', name='Test', line={'color':red_magpie}))
+    fig.add_trace(go.Scatter(x=train_df.index, y=train_df['Total_Revenue'], mode='lines', name='Train'))
+    fig.add_trace(go.Scatter(x=test_df.index, y=test_df['Total_Revenue'], mode='lines', name='Test', line={'color':red_magpie}))
     fig.add_trace(go.Scatter(x=predictions.index, y=predictions, mode='lines', name='Predictions'))
     fig.update_xaxes(rangeslider_visible=True)
     fig.update_layout(
@@ -613,14 +642,6 @@ def train_forecast_plot(train_df, test_df, predictions, title):
     
 
 
-    
-    
-    
-    
-    
-    
-    
-    
     
 # Market basket analysis
 def transaction_encoder(df):
