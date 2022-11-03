@@ -16,13 +16,16 @@ from pandas.tseries.offsets import DateOffset
 from sklearn.metrics import mean_absolute_error as mae, mean_absolute_percentage_error
 import math  
 import sklearn.metrics
+from sklearn.metrics import r2_score
 import itertools
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 import statsmodels.api as sm
+from scipy import stats
 from mlxtend.frequent_patterns import apriori
 from mlxtend.frequent_patterns import association_rules
 from mlxtend.preprocessing import TransactionEncoder
 from statsmodels.tsa.statespace.sarimax import SARIMAX
+from statsmodels.graphics.tsaplots import plot_acf
 
 
 # Variables 
@@ -483,13 +486,35 @@ def mean_absolute_percentage_error_calc(true_values, predicted_values, forecast_
     print(f'The MAPE between the actual and {forecast_name} revenue is {mape}%')
     
 def rmse(actual, predicted, forecast_name):
+    """
+    Calculate the root mean squared error.
+    Inputs:
+    actual (float): The true value is inputted 
+    predicted (float): The predicted value the true value is being compared with 
+    forecast name (string) : the name of the type of model the rmse is being calculated for 
+    """
     mse = sklearn.metrics.mean_squared_error(actual, predicted)  
     rmse = math.sqrt(mse)  
 
-    print(f'The RMSE for the {forecast_name} is: {round(rmse,2)}')  
+    print(f'The RMSE for the {forecast_name} is: {round(rmse,2)}') 
+    
+def r2(true_values, predicted_values, forecast_name):
+    """
+    Calculate the R2 score between the actual and predicted inputted values.
+    Inputs:
+    actual (float): The true value is inputted 
+    predicted (float): The predicted value the true value is being compared with 
+    forecast name (string) : the name of the type of model the rmse is being calculated for 
+    """
+
+    coefficient_of_dermination = r2_score(true_values, predicted_values)
+    print(f'The R2 for the {forecast_name} is: {round(coefficient_of_dermination,3)}') 
+
     
 
 def full_accuracy_report(true_values, predicted_values, forecast_name):
+    r2(true_values, predicted_values, forecast_name)
+    print('')
     rmse(true_values, predicted_values, forecast_name)
     print('')
     mean_absolute_error(true_values, predicted_values, forecast_name)
@@ -574,7 +599,7 @@ def vif_func(X):
     
     
     
-# ARIMA 
+# SARIMAX 
 
 # evaluate the SARIMAX model for a given order (p,d,q)
 def evaluate_sarimax_model(X, arima_order, exog_data, param_seasonal, split_size):
@@ -639,6 +664,52 @@ def train_forecast_plot(train_df, test_df, predictions, title):
         title=title
     )
     fig.show()    
+    
+    
+    
+    
+def plot_residuals(model_resids, model_fitted, title1, title2, title3, title4):
+    # To plot the residuals distribution 
+    plt.subplots(2,2, figsize = (18,10))
+
+    # A q-q plot of the model residuals is plotted
+    plt.subplot(2,2,1)
+    stats.probplot(model_resids, dist='norm', plot = plt)
+    plt.title(title1, fontsize=20, pad=10)
+    plt.ylabel('Frequency', fontsize=15)
+    plt.xlabel('Model Residuals', fontsize=15)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+
+    # A scatter plot of the model residuals vs fitted values is plotted
+    plt.subplot(2,2,2)
+    plt.scatter(model_fitted, model_resids, color = light_magpie)
+    plt.xlabel('Fitted Values', fontsize=15)
+    plt.ylabel('Model Residuals', fontsize=15)
+    plt.title(title2, fontsize=20, pad=10)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+
+    # To plot the model residuals 
+    plt.subplot(2,2,3)
+    plt.plot(model_resids.index, model_resids)
+    plt.ylabel('Residuals', fontsize=15)
+    plt.xlabel('Date', fontsize=15)
+    plt.title(title3, fontsize=20, pad=10)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+
+    # To plot the autocorrelation plot of the model residuals 
+    plt.subplot(2,2,4)
+    plot_acf(model_resids, lags=17, ax=plt.gca())
+    plt.xlabel('Lag', fontsize=15)
+    plt.ylabel('Partial Autocorrelation', fontsize=15)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.title(title4, fontsize=20, pad=10)
+
+    plt.tight_layout()
+    plt.show()    
     
 
 
