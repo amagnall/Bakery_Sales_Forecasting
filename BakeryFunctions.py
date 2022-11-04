@@ -36,10 +36,6 @@ medium_magpie = '#235087'
 light_magpie = '#5489CB'
 lighter_magpie = '#d1f5ff'
 red_magpie = '#FF6459'
-yellow_magpie = '#E9BA49'
-pink_magpie = '#F8EEF9'
-grey_magpie = '#AEAEAE'
-
 
 
 # Raw Data Cleaning and Exploration Functions
@@ -526,7 +522,7 @@ def full_accuracy_report(true_values, predicted_values, forecast_name):
     
 
 
-# linear regression model 
+# Linear regression model 
 
 def full_lreg(X_train, y_train, X_test, train_df, test_df, title, y_test, forecast_label):
     print('Fitting linear regression model.\n')
@@ -550,7 +546,7 @@ def full_lreg(X_train, y_train, X_test, train_df, test_df, title, y_test, foreca
     prediction = lm_revenue_results.predict(X_test_withconstant)
     
     print('Plotting predicted results.\n')
-    train_forecast_plot(train_df, test_df, prediction, title)
+    train_forecast_plot(train_df, test_df, prediction.index, prediction, title)
     
     print('The accuracy scores for the model are:\n')
     
@@ -652,11 +648,11 @@ def evaluate_models(dataset, p_values, d_values, q_values, exog_data, s_range, s
     
     
     
-def train_forecast_plot(train_df, test_df, predictions, title):
+def train_forecast_plot(train_df, test_df, prediction_dates, predicted_values, title):
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=train_df.index, y=train_df['Total_Revenue'], mode='lines', name='Train'))
     fig.add_trace(go.Scatter(x=test_df.index, y=test_df['Total_Revenue'], mode='lines', name='Test', line={'color':red_magpie}))
-    fig.add_trace(go.Scatter(x=predictions.index, y=predictions, mode='lines', name='Predictions'))
+    fig.add_trace(go.Scatter(x=prediction_dates, y=predicted_values, mode='lines', name='Predictions'))
     fig.update_xaxes(rangeslider_visible=True)
     fig.update_layout(
         yaxis_title='Revenue (£)', 
