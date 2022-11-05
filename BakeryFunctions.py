@@ -125,9 +125,9 @@ def shop_clean(df):
 def basic_eda(df):
     print(f'The number of duplicated rows are: {df.duplicated().sum()}\n')
     print(f'The number of missing values are: \n{df.isna().sum()}\n')
-
+    print('The first 5 rows are:\n')
     display(df.head())
-    
+    print('\nInformation summary of the dataset:')
     display(df.info())
     
 def convert_date(df, date_format='%Y-%m-%d'):
