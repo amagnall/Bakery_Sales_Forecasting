@@ -32,6 +32,6 @@ The notebooks in order are as follows with descriptions about their contents:
 
 The folders in this file are required:
 
-1. ‘models’ - this contains all .pkl files that are necessary to run the 10_Modelling_Summary notebook
-2. requirement.txt - contains information on the bakery_environment required to run the notebooks
+1. ‘models’ - this contains all .pkl files that are necessary to run the 10_Modelling_Summary notebook (excluding SARIMAX daily and weekly which are too large)
+2. requirements.txt - contains information on the bakery_environment required to run the notebooks
 3. .ipynb files - all the notebooks 
