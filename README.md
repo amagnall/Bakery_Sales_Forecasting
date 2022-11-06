@@ -9,23 +9,29 @@ My name is Abi Magnall and this is my capstone project submission for BrainStati
 
 **Purpose of this project**: 
 
-In this project, I develop Moving Averages, Linear Regression, SARIMAX and Facebook Prophet models to forecast daily, weekly and monthly revenue for the amazing Artisan Bakery, [Two Magpies Bakery](https://twomagpiesbakery.co.uk/). I also carry out Market Basket Analysis to provide recommendations and provide greater clarity to the business on the most popular, complimentary and subsitute products. Using various methods of data visualization and communication I convey findings and actionable insights.
+The aim of this project is to develop Moving Averages, Linear Regression, SARIMAX and Facebook Prophet models to forecast daily, weekly and monthly revenue for the amazing Artisan Bakery, [Two Magpies Bakery](https://twomagpiesbakery.co.uk/). Market Basket Analysis is also performed to provide recommendations and provide greater clarity to the business on the most popular, complimentary and subsitute products. Through various methods of data visualization and communication the findings and actionable insights are conveyed.
 
 
-The notebooks in order are as follows:
+The notebooks in order are as follows with descriptions about their contents:
 
-1. 1_Bakery_Data_Gathering
-2. Weather Cleaning and EDA
-3. Bakery Data Cleaning
-4. 
-5. Findings
 
-Notebook descriptions are found in the below table: 
+|Order |Notebook |  Description|
+|:--| :- |  :-|
+|1| 1_Bakery_Data_Gathering |  This notebook defines the problem statement and makes API calls to download the bakery data |               
+|2| 2_Weather_Cleaning_EDA| This notebook explored and cleans the weather dataset |         
+|3| 3_Bakery_Data_Cleaning | All the required cleaning steps for the raw bakery data| 
+|4| 4_Bakery_Data_Preprocessing | The preprocessing steps required to merge and transform datasets into the correct format for timeseries |        
+|5| 5_Bakery_Data_EDA | Exploratory Data Analysis into the clean and preprocessed bakery transaction data | 
+|6| 6_Model_1_Moving_Average_Model|  | 
+|7| 7_Model_2_Linear_Regression | Float |   
+|8| 8_Model_3_SARIMAX | Float |        
+|9| 9_Model_4_Facebook_Prophet| Float | 
+|10| 10_Modelling_Summary| Float | 
+|11| 11_Market_Basket_Analysis| Float | 
 
-**UPDATE**
 
 The folders in this file are required:
 
-1. ‘data’ - this contains all .pkl files that are necessary to run the notebooks
-2. requirement.txt
-3. .ipynb files
+1. ‘models’ - this contains all .pkl files that are necessary to run the 10_Modelling_Summary notebook
+2. requirement.txt - contains information on the bakery_environment required to run the notebooks
+3. .ipynb files - all the notebooks 
