@@ -22,12 +22,12 @@ The notebooks in order are as follows with descriptions about their contents:
 |3| 3_Bakery_Data_Cleaning | All the required cleaning steps for the raw bakery data| 
 |4| 4_Bakery_Data_Preprocessing | The preprocessing steps required to merge and transform datasets into the correct format for timeseries |        
 |5| 5_Bakery_Data_EDA | Exploratory Data Analysis into the clean and preprocessed bakery transaction data | 
-|6| 6_Model_1_Moving_Average_Model|  | 
-|7| 7_Model_2_Linear_Regression | Float |   
-|8| 8_Model_3_SARIMAX | Float |        
-|9| 9_Model_4_Facebook_Prophet| Float | 
-|10| 10_Modelling_Summary| Float | 
-|11| 11_Market_Basket_Analysis| Float | 
+|6| 6_Model_1_Moving_Average_Model| The steps taken for the baseline moving average model predictions | 
+|7| 7_Model_2_Linear_Regression | The steps taken to develop the Linear Regression models |   
+|8| 8_Model_3_SARIMAX | The steps taken to develop the SARIMAX models |        
+|9| 9_Model_4_Facebook_Prophet| The steps taken to develop the Facebook Prophet models| 
+|10| 10_Modelling_Summary| A notebook discussing all the models built, their results and a final test accuracy on new unseen data| 
+|11| 11_Market_Basket_Analysis| Market Basket Analysis for each of the four bakeries | 
 
 
 The folders in this file are required:
